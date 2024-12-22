@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Event Logger</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background-color: #f4f4f9;
+    }
+
+
+
+    #card-container {
+      display: flex;
+      flex-direction: column;
+      /* Выравнивание по левому краю */
+      overflow-y: auto;
+      /* Вертикальная прокрутка */
+      width: 300px;
+      /* Фиксированная ширина для карточек */
+      height: 100vh;
+      /* Высота на весь экран */
+      padding: 10px;
+      margin: 0;
+      border-right: 2px solid #007BFF;
+      box-sizing: border-box;
+      background-color: #e5e9ff;
+      gap: 10px;
+      /* Отступ между карточками */
+      position: fixed;
+      /* Фиксация контейнера слева */
+      top: 0;
+      left: 0;
+    }
+
+    .card {
+      margin: auto;
+      flex: 0 0 auto;
+      width: 250px;
+      border: 2px solid #ccc;
+      background: #fff;
+      padding: 10px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      cursor: pointer;
+    }
+
+    .card:hover {
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    }
+
+    .card h4 {
+      margin: 0 0 10px;
+    }
+
+    .card p {
+      margin: 5px 0;
+    }
+
+    #user-list {
+      width: 80%;
+      max-width: 600px;
+      margin-bottom: 10px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      background: #fff;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #user-list ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
+
+    #user-list li {
+      padding: 5px 10px;
+      border-bottom: 1px solid #eee;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    #user-list li span {
+      font-weight: bold;
+    }
+
+    .user-status {
+      display: flex;
+      align-items: center;
+    }
+
+
+    .status-indicator {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      margin-right: 8px;
+      margin-left: 1px;
+    }
+
+    .status-indicator.online {
+      background-color: green;
+    }
+
+    .status-indicator.offline {
+      background-color: red;
+    }
+
+    #log {
+      width: 80%;
+      max-width: 600px;
+      height: 300px;
+      overflow-y: scroll;
+      border: 1px solid #ccc;
+      background: #fff;
+      padding: 10px;
+      margin-bottom: 20px;
+      border-radius: 5px;
+      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    }
+
+    #log p {
+      margin: 0 0 10px;
+      padding: 5px;
+      border-bottom: 1px solid #eee;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .selected {
+      border: 2px solid #007BFF;
+      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.5);
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 5px;
+      background-color: #007BFF;
+      color: white;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    button:hover {
+      background-color: #0056b3;
+    }
+
+    button:disabled {
+      background-color: #ccc;
+    }
+  </style>
+</head>
+
+<body>
+  <div id="card-container">
+    <!-- Cards will be appended here dynamically -->
+  </div>
+
+  <div id="user-list">
+    <h3>Connected Users</h3>
+    <ul id="users"></ul>
+  </div>
+
+  <div id="log"></div>
+
+  <div class="buttons">
+    <button id="ready">Ready</button>
+    <button id="approve" disabled>Approve</button>
+  </div>
+
+  <script>
+    const cardContainer = document.getElementById('card-container');
+    const logContainer = document.getElementById('log');
+    const userList = document.getElementById('users');
+
+    // Track users and their statuses
+    let users = {};
+    let selectedRequestId = null;
+    let userId = null;
+    let socket = null;
+
+    // WebSocket connection
+    function ConnectWebSocket(requestId) {
+      const ws = new WebSocket(`wss://${document.location.host}/api/ws/${requestId}`)
+
+      ws.addEventListener('open', () => {
+        fetchUserList(selectedRequestId)
+      });
+
+      ws.addEventListener('message', (event) => {
+        const message = JSON.parse(event.data);
+
+        // Handle different message types
+        if (message.type === 'update_status') {
+          fetchUserList(selectedRequestId)
+          appendLog(`> ${message.rid}/${message.uid}: ${message.status}`);
+        } else if (message.type === 'switch_req') {
+          appendLog(`> ${message.uid} switched to ${message.rid}`);
+        } else {
+          console.log(message)
+          appendLog(`> ${message}`);
+        }
+      });
+      ws.addEventListener('error', (error) => {
+        appendLog(`WebSocket Error: ${error.message}`);
+      });
+      return ws
+    }
+
+    function fetchRequests() {
+      fetch("/api/requests")
+        .then(response => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch requests');
+          }
+          return response.json();
+        })
+        .then(requests => {
+          if (Object.keys(requests.requests).length > 0) {
+            if (selectedRequestId === null) {
+              selectedRequestId = Object.entries(requests.requests)[0][0]
+              socket = ConnectWebSocket(selectedRequestId)
+            }
+            renderCards(requests.requests);
+          } else {
+            appendLog(`No requests. Nothing to approve`)
+          }
+        })
+        .catch(error => {
+          console.error(error);
+        });
+    }
+
+    function renderCards(requests) {
+
+      cardContainer.innerHTML = '';
+      Object.entries(requests).forEach(([key, request]) => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        card.dataset.id = key;
+        card.innerHTML = `
+          <h4>Request ID: ${key}</h4>
+          <p>Email: ${request.email}</p>
+          <p>Cluster: ${request.cluster}</p>
+          <p>Role: ${request.role}</p>
+          <p>Time Period: ${request.time_period}</p>
+        `;
+
+        if (selectedRequestId === key) {
+          card.classList.add('selected');
+        }
+        card.addEventListener('click', () => handleCardClick(key));
+        cardContainer.appendChild(card);
+      });
+    }
+
+    function handleCardClick(requestId) {
+      selectedRequestId = requestId;
+      document.querySelectorAll('.card').forEach(card => {
+        card.classList.remove('selected');
+      });
+      // Подсвечиваем выбранную карточку
+      const selectedCard = document.querySelector(`.card[data-id="${requestId}"]`);
+      selectedCard.classList.add('selected');
+
+      if (socket.readyState === WebSocket.OPEN) {
+        socket.close()
+      }
+      socket = ConnectWebSocket(selectedRequestId)
+
+      // Fetch related data
+      fetchUserList(requestId);
+    }
+    // Helper to append log messages
+    function appendLog(message) {
+      const logEntry = document.createElement('p');
+      logEntry.textContent = message;
+      logContainer.appendChild(logEntry);
+      logContainer.scrollTop = logContainer.scrollHeight;
+    }
+
+    // Helper to update user list
+    function updateUserList() {
+      userList.innerHTML = '';
+      Object.keys(users).forEach((uid) => {
+        const listItem = document.createElement('li');
+        listItem.innerHTML = `<div class="user-status"><div class="status-indicator ${users[uid].active}"></div>${uid}</div><span>${users[uid].status|| "No Status"}</span>`;
+        userList.appendChild(listItem);
+      });
+    }
+
+    // Add event listeners to buttons
+    document.getElementById('ready').addEventListener('click', () => {
+      sendRequest(selectedRequestId, 'ready');
+    });
+
+    document.getElementById('approve').addEventListener('click', () => {
+      sendRequest(selectedRequestId, 'approve');
+    });
+
+    // Function to send HTTP request to backend
+    function sendRequest(requestId, action) {
+      fetch(`/api/${action}/${requestId}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ action }),
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Network response was not ok');
+          }
+          return response.json();
+        })
+        .catch((error) => {
+          appendLog(`HTTP Error: ${error.message}`);
+        });
+    }
+    // Function to fetch initial user list
+    function fetchUserList(requestId) {
+      users = {}
+      fetch(`/api/users/${requestId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      })
+        .then((response) => {
+          if (!response.ok) {
+            throw new Error('Failed to fetch user list');
+          }
+          return response.json();
+        })
+        .then((data) => {
+          data.forEach((user) => {
+            users[user.uid] = user;
+          });
+          // if (Object.keys(users).every(function (k) { return users[k] == "Ready" }) && Object.keys(users).length > 1) {
+          //   document.getElementById("approve").disabled = false
+          //   document.getElementById("ready").disabled = true
+          // }
+          if (Object.keys(users).every(function (k) { return users[k].status == "Ready" })){
+            document.getElementById("approve").disabled = false
+            document.getElementById("ready").disabled = true
+          }
+
+          updateUserList();
+        })
+        .catch((error) => {
+          appendLog(`Error fetching user list: ${error.message}`);
+        });
+    }
+
+    fetchRequests();
+
+  </script>
+</body>
+
+</html>

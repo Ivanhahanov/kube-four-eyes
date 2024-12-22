@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Access Request Form</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
+
+    .form-container {
+      background: #ffffff;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      padding: 20px 30px;
+      width: 100%;
+      max-width: 400px;
+    }
+
+    .form-container h2 {
+      margin-bottom: 20px;
+      color: #333;
+      text-align: center;
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-group label {
+      display: block;
+      margin-bottom: 5px;
+      color: #555;
+      font-weight: bold;
+    }
+
+    .form-group input,
+    .form-group select {
+      padding: 10px;
+      width: 100%;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+      font-size: 14px;
+      box-sizing:border-box
+    }
+
+    .form-group input:focus,
+    .form-group select:focus {
+      border-color: #007bff;
+      outline: none;
+    }
+
+    .form-group button {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+
+    .form-group button:hover {
+      background-color: #0056b3;
+    }
+
+    .message {
+      margin-top: 20px;
+      text-align: center;
+      font-size: 14px;
+    }
+
+    .message.success {
+      color: #28a745;
+    }
+
+    .message.error {
+      color: #dc3545;
+    }
+  </style>
+</head>
+<body>
+  <div class="form-container">
+    <h2>Access Request</h2>
+    <form id="access-form">
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" name="role" required>
+          <option value="">Select a role</option>
+          <option value="admin">Admin</option>
+          <option value="editor">Editor</option>
+          <option value="viewer">Viewer</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="time_period">Access Duration (hours)</label>
+        <input type="number" id="time_period" name="time_period" placeholder="Enter hours" min="1" required />
+      </div>
+
+      <div class="form-group">
+        <button type="submit">Submit Request</button>
+      </div>
+
+      <div class="message" id="form-message"></div>
+    </form>
+  </div>
+
+  <script>
+    document.getElementById('access-form').addEventListener('submit', async function(event) {
+      event.preventDefault();
+
+      const role = document.getElementById('role').value;
+      const time_period = document.getElementById('time_period').value;
+      const messageElement = document.getElementById('form-message');
+
+      if (!role || !time_period) {
+        messageElement.textContent = 'Please fill out all fields.';
+        messageElement.className = 'message error';
+        return;
+      }
+
+      try {
+        const response = await fetch('/api/submit-access-request', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ role, time_period })
+        });
+
+        if (response.ok) {
+          messageElement.textContent = 'Request submitted successfully!';
+          messageElement.className = 'message success';
+        } else {
+          messageElement.textContent = 'Failed to submit request. Please try again.';
+          messageElement.className = 'message error';
+        }
+      } catch (error) {
+        messageElement.textContent = 'An error occurred. Please try again later.';
+        messageElement.className = 'message error';
+      }
+    });
+  </script>
+</body>
+</html>

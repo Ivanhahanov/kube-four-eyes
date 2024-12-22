@@ -1,0 +1,15 @@
+clusters:
+- name: dev-webhook
+  cluster:
+    certificate-authority: /etc/ca-certificates/custom/root-ca.pem
+    server: https://web.dev.local/authorize
+users:
+- name: api-server
+  user:
+    token: test-token
+current-context: dev-webhook
+contexts:
+- context:
+    cluster: dev-webhook
+    user: api-server
+  name: dev-webhook
