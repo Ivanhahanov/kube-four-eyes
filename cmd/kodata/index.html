@@ -108,11 +108,6 @@
             border-color: rgb(0, 123, 255);
         }
 
-        .card .field {
-            display: flex;
-            /* width: 10em; */
-        }
-
         .card .field label {
             font-size: 0.85em;
             color: #ccc;
@@ -124,18 +119,7 @@
         }
 
         .card .name {
-            display: flex;
             width: 20em;
-        }
-
-        .card .name label {
-            font-size: 0.85em;
-            color: #ccc;
-            margin-right: 10px;
-        }
-
-        .card .name span {
-            font-size: 0.95em;
         }
 
         .badge {
@@ -325,7 +309,7 @@
                 card.dataset.id = key;
 
                 const userField = document.createElement('div');
-                userField.className = 'name';
+                userField.className = 'field name';
                 userField.innerHTML = `<label>User:</label><span>${request.email}</span>`;
 
                 const roleField = document.createElement('div');
