@@ -75,6 +75,7 @@ func main() {
 	api := app.Group("/api", auth)
 	api.Post("/submit-access-request", auth, handlers.SubmitAccessRequest)
 	api.Get("/requests", auth, handlers.AccessRequestList)
+	api.Get("/logs", auth, handlers.GetLogs)
 
 	api.Use("/ws/:id", func(c *fiber.Ctx) error {
 		if websocket.IsWebSocketUpgrade(c) {

@@ -2,374 +2,444 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Event Logger</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      margin: 0;
-      padding: 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-      background-color: #f4f4f9;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approval Application</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
 
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #1e1e1e;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        }
 
+        .section {
+            margin-bottom: 10px;
+        }
 
-    #card-container {
-      display: flex;
-      flex-direction: column;
-      /* Выравнивание по левому краю */
-      overflow-y: auto;
-      /* Вертикальная прокрутка */
-      width: 300px;
-      /* Фиксированная ширина для карточек */
-      height: 100vh;
-      /* Высота на весь экран */
-      padding: 10px;
-      margin: 0;
-      border-right: 2px solid #007BFF;
-      box-sizing: border-box;
-      background-color: #e5e9ff;
-      gap: 10px;
-      /* Отступ между карточками */
-      position: fixed;
-      /* Фиксация контейнера слева */
-      top: 0;
-      left: 0;
-    }
+        h2 {
+            border-bottom: 1px solid #333;
+            padding-bottom: 5px;
+        }
 
-    .card {
-      margin: auto;
-      flex: 0 0 auto;
-      width: 250px;
-      border: 2px solid #ccc;
-      background: #fff;
-      padding: 10px;
-      border-radius: 5px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-      cursor: pointer;
-    }
+        .user {
+            display: flex;
+            align-items: center;
+            margin-bottom: 10px;
+        }
 
-    .card:hover {
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
-    }
+        .status {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            margin-right: 10px;
+        }
 
-    .card h4 {
-      margin: 0 0 10px;
-    }
+        .status.online {
+            background-color: #4caf50;
+        }
 
-    .card p {
-      margin: 5px 0;
-    }
+        .status.offline {
+            background-color: #f44336;
+        }
 
-    #user-list {
-      width: 80%;
-      max-width: 600px;
-      margin-bottom: 10px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      background: #fff;
-      border-radius: 5px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+        .actions button {
+            padding: 10px 15px;
+            margin-right: 5px;
+            background-color: #333;
+            color: #ffffff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
 
-    #user-list ul {
-      list-style: none;
-      padding: 0;
-      margin: 0;
-    }
+        .actions button:hover {
+            background-color: #444;
+        }
 
-    #user-list li {
-      padding: 5px 10px;
-      border-bottom: 1px solid #eee;
-      display: flex;
-      justify-content: space-between;
-    }
+        .actions button:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+        }
 
-    #user-list li span {
-      font-weight: bold;
-    }
+        #log {
+            background-color: #222;
+            padding: 10px;
+            border-radius: 5px;
+            max-height: 150px;
+            overflow-y: auto;
+            font-size: 0.9em;
+        }
 
-    .user-status {
-      display: flex;
-      align-items: center;
-    }
+        .card {
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+            border-style: solid;
+            border-color: rgba(0, 0, 0, 0.3);
+            gap: 5px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
 
+        .card:hover {
+            background-color: #333;
+        }
 
-    .status-indicator {
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      margin-right: 8px;
-      margin-left: 1px;
-    }
+        .card.selected {
+            background-color: #333;
+            border-color: rgb(0, 123, 255);
+        }
 
-    .status-indicator.online {
-      background-color: green;
-    }
+        .card .field {
+            display: flex;
+            /* width: 10em; */
+        }
 
-    .status-indicator.offline {
-      background-color: red;
-    }
+        .card .field label {
+            font-size: 0.85em;
+            color: #ccc;
+            margin-right: 10px;
+        }
 
-    #log {
-      width: 80%;
-      max-width: 600px;
-      height: 300px;
-      overflow-y: scroll;
-      border: 1px solid #ccc;
-      background: #fff;
-      padding: 10px;
-      margin-bottom: 20px;
-      border-radius: 5px;
-      box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    }
+        .card .field span {
+            font-size: 0.95em;
+        }
 
-    #log p {
-      margin: 0 0 10px;
-      padding: 5px;
-      border-bottom: 1px solid #eee;
-    }
+        .card .name {
+            display: flex;
+            width: 20em;
+        }
 
-    .buttons {
-      display: flex;
-      gap: 10px;
-    }
+        .card .name label {
+            font-size: 0.85em;
+            color: #ccc;
+            margin-right: 10px;
+        }
 
-    .selected {
-      border: 2px solid #007BFF;
-      box-shadow: 0 4px 8px rgba(0, 123, 255, 0.5);
-    }
+        .card .name span {
+            font-size: 0.95em;
+        }
 
-    button {
-      padding: 10px 20px;
-      border: none;
-      border-radius: 5px;
-      background-color: #007BFF;
-      color: white;
-      cursor: pointer;
-      font-size: 16px;
-    }
+        .badge {
+            padding: 2px 5px;
+            border-radius: 4px;
+            font-size: 0.85em;
+            color: #fff;
+        }
 
-    button:hover {
-      background-color: #0056b3;
-    }
+        .badge.admin {
+            background-color: #4caf50;
+        }
 
-    button:disabled {
-      background-color: #ccc;
-    }
-  </style>
+        .badge.editor {
+            background-color: #2196f3;
+        }
+
+        .badge.viewer {
+            background-color: #9c27b0;
+        }
+
+        .requests-container {
+            max-height: 200px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+    </style>
 </head>
 
 <body>
-  <div id="card-container">
-    <!-- Cards will be appended here dynamically -->
-  </div>
+    <div class="container">
+        <div class="section">
+            <h2>Requests</h2>
+            <div id="requests" class="requests-container">
+                <!-- Requests will be dynamically populated -->
+            </div>
+        </div>
 
-  <div id="user-list">
-    <h3>Connected Users</h3>
-    <ul id="users"></ul>
-  </div>
+        <div class="section">
+            <h2>Users</h2>
+            <div id="users">
+                <!-- Users will be dynamically populated -->
+            </div>
+        </div>
 
-  <div id="log"></div>
+        <div class="section">
+            <h2>Actions</h2>
+            <div class="actions">
+                <button id="reject">Reject</button>
+                <button id="ready">Ready</button>
+                <button id="approve" disabled>Approve</button>
+            </div>
+        </div>
 
-  <div class="buttons">
-    <button id="ready">Ready</button>
-    <button id="approve" disabled>Approve</button>
-  </div>
+        <div class="section">
+            <h2>Log</h2>
+            <div id="log"></div>
+        </div>
+    </div>
 
-  <script>
-    const cardContainer = document.getElementById('card-container');
-    const logContainer = document.getElementById('log');
-    const userList = document.getElementById('users');
+    <script>
+        // Users data
+        var users = []
+        let socket = null;
 
-    // Track users and their statuses
-    let users = {};
-    let selectedRequestId = null;
-    let userId = null;
-    let socket = null;
+        const usersContainer = document.getElementById('users');
+        const logContainer = document.getElementById('log');
+        const approveButton = document.getElementById('approve');
+        const readyButton = document.getElementById('ready');
+        const requestsContainer = document.getElementById('requests');
 
-    // WebSocket connection
-    function ConnectWebSocket(requestId) {
-      const ws = new WebSocket(`wss://${document.location.host}/api/ws/${requestId}`)
+        let selectedRequestId = null;
 
-      ws.addEventListener('open', () => {
-        fetchUserList(selectedRequestId)
-      });
-
-      ws.addEventListener('message', (event) => {
-        const message = JSON.parse(event.data);
-
-        // Handle different message types
-        if (message.type === 'update_status') {
-          fetchUserList(selectedRequestId)
-          appendLog(`> ${message.rid}/${message.uid}: ${message.status}`);
-        } else if (message.type === 'switch_req') {
-          appendLog(`> ${message.uid} switched to ${message.rid}`);
-        } else {
-          console.log(message)
-          appendLog(`> ${message}`);
-        }
-      });
-      ws.addEventListener('error', (error) => {
-        appendLog(`WebSocket Error: ${error.message}`);
-      });
-      return ws
-    }
-
-    function fetchRequests() {
-      fetch("/api/requests")
-        .then(response => {
-          if (!response.ok) {
-            throw new Error('Failed to fetch requests');
-          }
-          return response.json();
-        })
-        .then(requests => {
-          if (Object.keys(requests.requests).length > 0) {
-            if (selectedRequestId === null) {
-              selectedRequestId = Object.entries(requests.requests)[0][0]
-              socket = ConnectWebSocket(selectedRequestId)
+        const isValidJSON = str => {
+            try {
+                JSON.parse(str);
+                return true;
+            } catch (e) {
+                return false;
             }
-            renderCards(requests.requests);
-          } else {
-            appendLog(`No requests. Nothing to approve`)
-          }
-        })
-        .catch(error => {
-          console.error(error);
-        });
-    }
+        };
 
-    function renderCards(requests) {
+        function ConnectWebSocket(requestId) {
+            const ws = new WebSocket(`wss://${document.location.host}/api/ws/${requestId}`)
 
-      cardContainer.innerHTML = '';
-      Object.entries(requests).forEach(([key, request]) => {
-        const card = document.createElement('div');
-        card.className = 'card';
-        card.dataset.id = key;
-        card.innerHTML = `
-          <h4>Request ID: ${key}</h4>
-          <p>Email: ${request.email}</p>
-          <p>Cluster: ${request.cluster}</p>
-          <p>Role: ${request.role}</p>
-          <p>Time Period: ${request.time_period}</p>
-        `;
+            ws.addEventListener('open', () => {
+                fetchUserList()
+            });
 
-        if (selectedRequestId === key) {
-          card.classList.add('selected');
+            ws.addEventListener('message', (event) => {
+                if (isValidJSON(event.data)) {
+                    const message = JSON.parse(event.data);
+
+                    // Handle different message types
+                    if (message.type === 'update_status') {
+                        fetchUserList()
+                        //logAction(`${message.rid}/${message.uid}: ${message.status}`);
+                    } else if (message.type === 'switch_req') {
+                        //fetchUserList()
+                        // logAction(`${message.uid} switched to ${message.rid}`);
+                    } else {
+                        console.log(event)
+                    }
+                } else {
+                    console.log(event.data)
+                    logAction(event.data);
+                }
+            });
+            ws.addEventListener('error', (error) => {
+                logAction(`WebSocket Error: ${error.message}`);
+            });
+            return ws
         }
-        card.addEventListener('click', () => handleCardClick(key));
-        cardContainer.appendChild(card);
-      });
-    }
 
-    function handleCardClick(requestId) {
-      selectedRequestId = requestId;
-      document.querySelectorAll('.card').forEach(card => {
-        card.classList.remove('selected');
-      });
-      // Подсвечиваем выбранную карточку
-      const selectedCard = document.querySelector(`.card[data-id="${requestId}"]`);
-      selectedCard.classList.add('selected');
+        function fetchUserList() {
+            fetch(`/api/users/${selectedRequestId}`, {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch user list');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    users = data
+                    renderUsers();
+                })
+                .catch((error) => {
+                    logAction(`Error fetching user list: ${error.message}`);
+                });
+        }
 
-      if (socket.readyState === WebSocket.OPEN) {
-        socket.close()
-      }
-      socket = ConnectWebSocket(selectedRequestId)
+        // Populate users
+        function renderUsers() {
+            usersContainer.innerHTML = '';
+            //const filteredUsers = requestId ? users.filter(user => user.name === requests.find(r => r.id === requestId).user) : users;
+            users.forEach(user => {
+                const userDiv = document.createElement('div');
+                userDiv.className = 'user';
 
-      // Fetch related data
-      fetchUserList(requestId);
-    }
-    // Helper to append log messages
-    function appendLog(message) {
-      const logEntry = document.createElement('p');
-      logEntry.textContent = message;
-      logContainer.appendChild(logEntry);
-      logContainer.scrollTop = logContainer.scrollHeight;
-    }
+                const statusIndicator = document.createElement('div');
+                statusIndicator.className = `status ${user.active || "offline"}`;
 
-    // Helper to update user list
-    function updateUserList() {
-      userList.innerHTML = '';
-      Object.keys(users).forEach((uid) => {
-        const listItem = document.createElement('li');
-        listItem.innerHTML = `<div class="user-status"><div class="status-indicator ${users[uid].active}"></div>${uid}</div><span>${users[uid].status|| "No Status"}</span>`;
-        userList.appendChild(listItem);
-      });
-    }
+                const userName = document.createElement('span');
+                userName.textContent = `${user.uid} - ${user.status || "No Status"}`;
 
-    // Add event listeners to buttons
-    document.getElementById('ready').addEventListener('click', () => {
-      sendRequest(selectedRequestId, 'ready');
-    });
+                userDiv.appendChild(statusIndicator);
+                userDiv.appendChild(userName);
+                usersContainer.appendChild(userDiv);
+            });
+        }
+        function fetchRequests() {
+            fetch("/api/requests")
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch requests');
+                    }
+                    return response.json();
+                })
+                .then(requests => {
+                    if (Object.keys(requests.requests).length > 0) {
+                        if (selectedRequestId === null) {
+                            selectedRequestId = Object.entries(requests.requests)[0][0]
+                            socket = ConnectWebSocket(selectedRequestId)
+                        }
 
-    document.getElementById('approve').addEventListener('click', () => {
-      sendRequest(selectedRequestId, 'approve');
-    });
+                        renderRequests(requests.requests);
+                    } else {
+                        logAction(`No requests. Nothing to approve`)
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
+        }
 
-    // Function to send HTTP request to backend
-    function sendRequest(requestId, action) {
-      fetch(`/api/${action}/${requestId}`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ action }),
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          return response.json();
-        })
-        .catch((error) => {
-          appendLog(`HTTP Error: ${error.message}`);
+        // Populate requests
+        function renderRequests(requests) {
+            requestsContainer.innerHTML = '';
+            Object.entries(requests).forEach(([key, request]) => {
+                const card = document.createElement('div');
+                card.className = 'card';
+                card.dataset.id = key;
+
+                const userField = document.createElement('div');
+                userField.className = 'name';
+                userField.innerHTML = `<label>User:</label><span>${request.email}</span>`;
+
+                const roleField = document.createElement('div');
+                roleField.className = 'field';
+                const roleBadge = `<span class="badge ${request.role.toLowerCase()}">${request.role}</span>`;
+                roleField.innerHTML = `<label>Role:</label>${roleBadge}`;
+
+                const timeField = document.createElement('div');
+                timeField.className = 'field';
+                timeField.innerHTML = `<label>Time:</label><span>${request.time_period}</span>`;
+                if (key === selectedRequestId) {
+                    card.classList.add('selected');
+                }
+                //card.appendChild(idField);
+                card.appendChild(userField);
+                card.appendChild(roleField);
+                card.appendChild(timeField);
+
+                card.addEventListener('click', () => {
+                    document.querySelectorAll('.card').forEach(c => c.classList.remove('selected'));
+                    card.classList.add('selected');
+                    selectedRequestId = key;
+                    if (socket.readyState === WebSocket.OPEN) {
+                        socket.close()
+                    }
+                    socket = ConnectWebSocket(selectedRequestId)
+                });
+
+                requestsContainer.appendChild(card);
+            });
+        }
+        function getLog() {
+            fetch("/api/logs", {
+                method: 'GET',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch logs');
+                    }
+                    return response.json();
+                })
+                .then((data) => {
+                    data.logs.forEach((log) =>{
+                        logAction(log)
+                    }
+                )
+                })
+                .catch((error) => {
+                    logAction(`Error fetching user list: ${error.message}`);
+                });
+        }
+
+        function logAction(action) {
+            const logEntry = document.createElement('div');
+            //logEntry.textContent = `${new Date().toLocaleTimeString()} - ${action}`;
+            logEntry.textContent = `${action}`;
+            logContainer.appendChild(logEntry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        function updateApproveButton() {
+            const readyCount = users.filter(user => user.status === 'Ready').length;
+            approveButton.disabled = readyCount < 2;
+        }
+
+        readyButton.addEventListener('click', () => {
+            const currentUser = users.find(user => user.uid);
+            if (currentUser) {
+                currentUser.status = 'Ready';
+                sendRequest('ready')
+                //logAction(`${currentUser.uid} is ready.`);
+                updateApproveButton();
+            }
         });
-    }
-    // Function to fetch initial user list
-    function fetchUserList(requestId) {
-      users = {}
-      fetch(`/api/users/${requestId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-      })
-        .then((response) => {
-          if (!response.ok) {
-            throw new Error('Failed to fetch user list');
-          }
-          return response.json();
-        })
-        .then((data) => {
-          data.forEach((user) => {
-            users[user.uid] = user;
-          });
-          // if (Object.keys(users).every(function (k) { return users[k] == "Ready" }) && Object.keys(users).length > 1) {
-          //   document.getElementById("approve").disabled = false
-          //   document.getElementById("ready").disabled = true
-          // }
-          if (Object.keys(users).every(function (k) { return users[k].status == "Ready" })){
-            document.getElementById("approve").disabled = false
-            document.getElementById("ready").disabled = true
-          }
 
-          updateUserList();
-        })
-        .catch((error) => {
-          appendLog(`Error fetching user list: ${error.message}`);
+        document.getElementById('reject').addEventListener('click', () => {
+            users.forEach(user => user.status = 'no status');
+            renderUsers(selectedRequestId);
+            //logAction('All statuses reset.');
+            updateApproveButton();
         });
-    }
 
-    fetchRequests();
+        approveButton.addEventListener('click', () => {
+            sendRequest('approve')
+            //logAction('Approval complete.');
+        });
+        function sendRequest(action) {
+            fetch(`/api/${action}/${selectedRequestId}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ action }),
+            })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .catch((error) => {
+                    appendLog(`HTTP Error: ${error.message}`);
+                });
+        }
 
-  </script>
+        //renderRequests();
+        fetchRequests();
+        getLog();
+        //fetchUserList();
+
+    </script>
 </body>
 
 </html>

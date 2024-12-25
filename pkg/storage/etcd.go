@@ -40,23 +40,30 @@ func NewClient() *clientv3.Client {
 	return cli
 
 }
-func (s *Store) Put(k, v string, opts ...clientv3.OpOption) error {
+func (s *Store) Old(k, v string, opts ...clientv3.OpOption) error {
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	_, err := s.cli.Put(ctx, k, v)
 	cancel()
 	return err
 }
 
-func (s *Store) PutTemporary(k, v string, timeout int64) error {
+func (s *Store) Put(k, v string, leaseId int64) error {
+	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+	_, err := s.cli.Put(ctx, k, v, clientv3.WithLease(clientv3.LeaseID(leaseId)))
+	cancel()
+	return err
+}
+
+func (s *Store) PutTemporary(k, v string, timeout int64) (int64, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
 	lease, err := s.cli.Grant(ctx, timeout)
 	if err != nil {
 		log.Fatal(err)
-		return err
+		return 0, err
 	}
 	_, err = s.cli.Put(ctx, k, v, clientv3.WithLease(lease.ID))
 	cancel()
-	return err
+	return int64(lease.ID), err
 }
 
 func (s *Store) Get(k string) []byte {
@@ -81,6 +88,24 @@ func (s *Store) GetMany(k string) []*mvccpb.KeyValue {
 	}
 	return resp.Kvs
 }
+
+// func (s *Store) GetMany(k string) []*mvccpb.KeyValue {
+// 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)
+// 	resp, err := s.cli.Get(ctx, k, clientv3.WithPrefix())
+// 	cancel()
+// 	if err != nil {
+// 		log.Fatal(err)
+// 	}
+// 	var leasedKV []*mvccpb.KeyValue
+// 	//filter by leaseID
+// 	for _, r := range resp.Kvs {
+// 		fmt.Println(r)
+// 		if r.Lease == leaseId {
+// 			leasedKV = append(leasedKV, r)
+// 		}
+// 	}
+// 	return leasedKV
+// }
 
 func (s *Store) Delete(k string) {
 	ctx, cancel := context.WithTimeout(context.Background(), requestTimeout)

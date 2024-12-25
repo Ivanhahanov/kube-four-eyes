@@ -28,6 +28,6 @@ func SubmitAccessRequest(c *fiber.Ctx) error {
 	}
 	return c.JSON(map[string]string{
 		"status": "ok",
-		"id":     id,
+		"id":     string(id),
 	})
 }

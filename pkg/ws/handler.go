@@ -2,12 +2,12 @@ package ws
 
 import (
 	"encoding/json"
-	"log"
 	"webhook/pkg/auth"
 	"webhook/pkg/coordination"
 	"webhook/pkg/models"
 
 	"github.com/gofiber/contrib/websocket"
+	"github.com/gofiber/fiber/v2/log"
 )
 
 func getUserId(c *websocket.Conn) string {
@@ -36,20 +36,13 @@ func Websocket(c *websocket.Conn) {
 	coordination.SetOnline(c.Params("id"), getUserId(c))
 	Ch.Broadcast <- switchReq(c.Params("id"), getUserId(c))
 	for {
-		messageType, message, err := c.ReadMessage()
+		_, _, err := c.ReadMessage()
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
-				log.Println("read error:", err)
+				log.Info("read error:", err)
 			}
-
-			return // Calls the deferred function, i.e. closes the connection on error
-		}
-
-		if messageType == websocket.TextMessage {
-			// Broadcast the received message
-			Ch.Broadcast <- string(message)
-		} else {
-			log.Println("websocket message received of type", messageType)
+			// disconnected
+			return
 		}
 	}
 }

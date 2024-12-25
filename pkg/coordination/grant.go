@@ -67,22 +67,23 @@ func GrantUserAccess(rid string) error {
 		log.Error(err)
 	}
 	key := strings.Join([]string{"access", ar.Email, rid}, "/")
-	seconds, err := ConvertDurationToMinutes(ar.TimePeriod)
+	minutes, err := ConvertDurationToMinutes(ar.TimePeriod)
 	if err != nil {
 		return err
 	}
-	return storage.DB().PutTemporary(key, "ok", seconds*60)
+	_, err = storage.DB().PutTemporary(key, "ok", minutes*60)
+	return err
 }
 
-func CheckUserAccess(name string) bool {
+func CheckUserAccess(name string) (int64, bool) {
 	name = strings.TrimPrefix(name, helpers.GetEnv("OIDC_PREFIX", "oidc:"))
 	key := strings.Join([]string{"access", name}, "/")
 
 	res := storage.DB().GetMany(key)
 	for _, res := range res {
 		if string(res.Value) == "ok" {
-			return true
+			return res.Lease, true
 		}
 	}
-	return false
+	return 0, false
 }

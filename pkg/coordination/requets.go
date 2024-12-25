@@ -19,7 +19,11 @@ const (
 func NewRequest(ar models.AccessRequest) (string, error) {
 	req, _ := encodeRequest(ar)
 	id := uuid.New().String()
-	err := storage.DB().PutTemporary(strings.Join([]string{reqType, id}, sep), req, 180)
+	minutes, err := ConvertDurationToMinutes(ar.TimePeriod)
+	if err != nil {
+		return "", err
+	}
+	_, err = storage.DB().PutTemporary(strings.Join([]string{reqType, id}, sep), req, minutes*60)
 	if err != nil {
 		return "", err
 	}
@@ -48,7 +52,8 @@ func GetRequest(rid string) (models.AccessRequest, error) {
 
 func ChangeStatus(requestId, uid, status string) error {
 	key := strings.Join([]string{statusType, requestId, uid}, sep)
-	return storage.DB().Put(key, status)
+	_, err := storage.DB().PutTemporary(key, status, 24*60)
+	return err
 }
 
 func GetStatuses(requestId string) (map[string]string, error) {
@@ -63,12 +68,13 @@ func GetStatuses(requestId string) (map[string]string, error) {
 
 func SetOnline(requestId, uid string) error {
 	key := strings.Join([]string{onlineType, requestId, uid}, sep)
-	return storage.DB().Put(key, "online")
+	_, err := storage.DB().PutTemporary(key, "online", 60)
+	return err
 }
 
 func SetOffline(requestId, uid string) {
 	key := strings.Join([]string{onlineType, requestId, uid}, sep)
-	storage.DB().Delete(key)
+	storage.DB().PutTemporary(key, "offline", 60)
 }
 
 func GetOnline(requestId string) (map[string]string, error) {

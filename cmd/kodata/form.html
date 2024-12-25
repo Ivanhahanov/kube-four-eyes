@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,7 +8,8 @@
   <style>
     body {
       font-family: Arial, sans-serif;
-      background-color: #f4f4f9;
+      background-color: #121212;
+      color: #ffffff;
       margin: 0;
       padding: 0;
       display: flex;
@@ -17,7 +19,7 @@
     }
 
     .form-container {
-      background: #ffffff;
+      background-color: #1e1e1e;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
       padding: 20px 30px;
@@ -27,7 +29,6 @@
 
     .form-container h2 {
       margin-bottom: 20px;
-      color: #333;
       text-align: center;
     }
 
@@ -38,7 +39,6 @@
     .form-group label {
       display: block;
       margin-bottom: 5px;
-      color: #555;
       font-weight: bold;
     }
 
@@ -49,7 +49,9 @@
       border: 1px solid #ccc;
       border-radius: 5px;
       font-size: 14px;
-      box-sizing:border-box
+      box-sizing: border-box;
+      background-color: #333;
+      color: #ffffff;
     }
 
     .form-group input:focus,
@@ -88,6 +90,7 @@
     }
   </style>
 </head>
+
 <body>
   <div class="form-container">
     <h2>Access Request</h2>
@@ -116,7 +119,7 @@
   </div>
 
   <script>
-    document.getElementById('access-form').addEventListener('submit', async function(event) {
+    document.getElementById('access-form').addEventListener('submit', async function (event) {
       event.preventDefault();
 
       const role = document.getElementById('role').value;
@@ -152,4 +155,5 @@
     });
   </script>
 </body>
+
 </html>

@@ -1,6 +1,7 @@
 package handlers
 
 import (
+	"fmt"
 	"webhook/pkg/coordination"
 	"webhook/pkg/models"
 
@@ -27,6 +28,7 @@ func UsersList(ctx *fiber.Ctx) error {
 		log.Error("get statuses", err)
 		return fiber.ErrBadRequest
 	}
+	fmt.Println()
 
 	var resp = []models.WebsocketMessage{}
 	for _, user := range coordination.Policy().Users {
@@ -35,7 +37,7 @@ func UsersList(ctx *fiber.Ctx) error {
 			UserId:    user,
 			RequestId: rid,
 			Type:      "user_update",
-			Active:    onlineStatus(onlineUsers, user),
+			Active:    onlineUsers[user],
 			Status:    statuses[user],
 		})
 	}
