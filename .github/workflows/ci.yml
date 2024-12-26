@@ -23,5 +23,5 @@ jobs:
       - uses: ko-build/setup-ko@v0.6
         env:
           KO_DOCKER_REPO: explabs/kube-four-eyes
-      - run: ko build --platform=linux/amd64,linux/arm64 --bare
+      - run: ko build ./cmd/main.go --platform=linux/amd64,linux/arm64 --bare
 
