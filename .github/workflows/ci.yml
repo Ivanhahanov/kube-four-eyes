@@ -1,9 +1,8 @@
 name: Build Image CI
 
 on:
-  push:
-    tags:        
-      - '*'
+  release:
+    types: [published]
 
 jobs:
   build:
