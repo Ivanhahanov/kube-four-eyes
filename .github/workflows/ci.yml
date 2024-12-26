@@ -22,5 +22,5 @@ jobs:
         env:
           KO_DOCKER_REPO: explabs/kube-four-eyes
           KO_DATA_PATH: cmd/kodata
-      - run: ko build cmd/main.go --platform=linux/amd64,linux/arm64 --bare
+      - run: ko build cmd/main.go --platform=linux/amd64,linux/arm64 --bare -t ${{ github.ref_name }}
 
