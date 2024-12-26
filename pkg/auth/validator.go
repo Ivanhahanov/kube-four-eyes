@@ -26,7 +26,7 @@ func GetUserEmail(ctx *fiber.Ctx) string {
 	return ctx.Locals("claims").(*Claims).Email
 }
 
-func NewKeycloakJWTValidator(issuerUrl, clientId string) (func(*fiber.Ctx, string) (bool, error), error) {
+func NewJWTValidator(issuerUrl, clientId string) (func(*fiber.Ctx, string) (bool, error), error) {
 
 	myClient := &http.Client{Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}}}
 	ctx := oidc.ClientContext(context.Background(), myClient)
