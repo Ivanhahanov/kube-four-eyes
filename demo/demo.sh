@@ -225,6 +225,7 @@ config:
     client_id="oauth2-proxy"
     client_secret="b2F1dGgyLXByb3h5LWNsaWVudC1zZWNyZXQK"
     cookie_secure="false"
+    cookie_expire="30m"
 
     # Provider config
     provider="oidc"
