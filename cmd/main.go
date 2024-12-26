@@ -22,7 +22,7 @@ func main() {
 	var err error
 	switch helpers.GetEnv("AUTH_TYPE", "dex") {
 	case "dex":
-		validator, err = auth.NewKeycloakJWTValidator(
+		validator, err = auth.NewJWTValidator(
 			helpers.GetEnv("OIDC_URL", "http://localhost:8080/realms/master"),
 			helpers.GetEnv("OIDC_CLIENT_ID", "oauth2-proxy"),
 		)
